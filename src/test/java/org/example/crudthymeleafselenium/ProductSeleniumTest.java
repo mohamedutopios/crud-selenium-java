@@ -23,10 +23,11 @@ public class ProductSeleniumTest {
     public static void setUp() {
 
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--headless=new"); // pour Chrome 109+ (GitHub Actions a une version récente)
+        options.addArguments("--headless=new"); // ← OBLIGATOIRE en CI (GitHub Actions)
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
+        options.addArguments("--remote-allow-origins=*"); // pour les versions récentes de Chrome
         options.addArguments("--window-size=1920,1080");
 
         System.setProperty("webdriver.chrome.driver", "/usr/local/bin/chromedriver");
@@ -106,4 +107,5 @@ public class ProductSeleniumTest {
 
 
 
+  
 }
