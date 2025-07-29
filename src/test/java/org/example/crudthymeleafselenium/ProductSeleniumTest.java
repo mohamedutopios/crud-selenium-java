@@ -46,27 +46,30 @@ public class ProductSeleniumTest {
     }
 
     @Test
-    public void testCreateProduct(){
-        driver.get(host + "/products/create");
+public void testCreateProduct() {
+    driver.get(host + "/products/create");
 
-        WebElement nameFied = driver.findElement(By.name("name"));
-        WebElement priceFied = driver.findElement(By.name("price"));
-        WebElement submitButton = driver.findElement(By.tagName("button"));
+    WebElement nameField = driver.findElement(By.name("name"));
+    WebElement priceField = driver.findElement(By.name("price"));
+    WebElement submitButton = driver.findElement(By.tagName("button"));
 
-        nameFied.sendKeys("Test Product");
-        priceFied.sendKeys("100");
-        submitButton.click();
+    nameField.sendKeys("Test Product");
+    priceField.sendKeys("100");
+    submitButton.click();
 
-        assertThat(driver.getCurrentUrl()).isEqualTo(host + "/products");
+    // ✅ Attendre la redirection
+    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+    wait.until(ExpectedConditions.urlToBe(host + "/products"));
 
-        driver.get(host + "/products");
+    assertThat(driver.getCurrentUrl()).isEqualTo(host + "/products");
 
-        WebElement productName = driver.findElement(By.xpath("//td[contains(text(),'Test Product')]"));
-        assertThat(productName).isNotNull();
-        WebElement productPrice = driver.findElement(By.xpath("//td[contains(text(),'100')]"));
-        assertThat(productPrice).isNotNull();
+    WebElement productName = driver.findElement(By.xpath("//td[contains(text(),'Test Product')]"));
+    assertThat(productName).isNotNull();
 
-    }
+    WebElement productPrice = driver.findElement(By.xpath("//td[contains(text(),'100')]"));
+    assertThat(productPrice).isNotNull();
+}
+
 
     @Test
     public void testEditProduct(){
