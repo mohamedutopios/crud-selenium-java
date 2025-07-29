@@ -23,31 +23,33 @@ jobs:
       - name: Install Chrome and Chromedriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip curl gnupg
+          sudo apt-get install -y wget unzip curl jq gnupg
 
-          # Installer Google Chrome depuis le dépôt officiel (version stable)
+          # Installer Google Chrome (version stable officielle)
           wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-linux-keyring.gpg
           echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-          # Obtenir version exacte de Chrome
-          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-          echo "Installed Chrome version: $CHROME_VERSION"
+          # Obtenir la version exacte de Chrome
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+')
+          echo "Chrome installé : $CHROME_VERSION"
 
-          # Télécharger la version correspondante de ChromeDriver
-          DRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json" | jq -r ".versions[] | select(.version | startswith(\"$CHROME_VERSION\")) | .version" | head -n 1)
+          # Chercher la version correspondante de ChromeDriver depuis l’API officielle
+          DOWNLOAD_URL=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json | \
+          jq -r --arg ver "$CHROME_VERSION" '.versions[] | select(.version==$ver) | .downloads.chromedriver[] | select(.platform=="linux64") | .url')
 
-          echo "Matching ChromeDriver version: $DRIVER_VERSION"
+          echo "Téléchargement de ChromeDriver depuis : $DOWNLOAD_URL"
 
-          curl -s -O https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/${DRIVER_VERSION}/linux64/chromedriver-linux64.zip
+          # Télécharger et installer le ChromeDriver
+          wget "$DOWNLOAD_URL" -O chromedriver-linux64.zip
           unzip chromedriver-linux64.zip
           sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
           sudo chmod +x /usr/local/bin/chromedriver
 
-          # Vérifications
-          google-chrome --version
+          # Vérification
           chromedriver --version
+          google-chrome --version
 
       - name: Build app without tests
         run: ./mvnw clean package -DskipTests
