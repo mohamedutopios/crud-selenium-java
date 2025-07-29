@@ -1,5 +1,8 @@
 package org.example.crudthymeleafselenium;
 
+import java.time.Duration;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -10,11 +13,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
-
-import java.time.Duration;
-
-import static org.assertj.core.api.Assertions.assertThat;
 public class ProductSeleniumTest {
 
 
@@ -25,9 +23,11 @@ public class ProductSeleniumTest {
     public static void setUp() {
 
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--remote-allow-origin=*");
+        options.addArguments("--headless=new"); // pour Chrome 109+ (GitHub Actions a une version récente)
         options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--disable-gpu");
+        options.addArguments("--window-size=1920,1080");
 
         System.setProperty("webdriver.chrome.driver", "/usr/local/bin/chromedriver");
        // System.setProperty("webdriver.chrome.driver", "C:\\Users\\Moham\\Downloads\\chromedriver-win64\\chromedriver.exe"); pour windows
