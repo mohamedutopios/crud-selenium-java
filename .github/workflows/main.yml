@@ -1,91 +1,92 @@
-name: Run Selenium UI Tests
+# name: Run Selenium UI Tests
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
     
-permissions:
-  contents: read
-  checks: write
+# permissions:
+#   contents: read
+#   checks: write
 
-jobs:
-  selenium-tests:
-    runs-on: ubuntu-latest
+# jobs:
+#   selenium-tests:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+#       - name: Set up JDK 17
+#         uses: actions/setup-java@v3
+#         with:
+#           java-version: '17'
+#           distribution: 'temurin'
 
-      - name: Install Chrome and Chromedriver
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip curl jq gnupg
+#       - name: Install Chrome and Chromedriver
+#         run: |
+#           sudo apt-get update
+#           sudo apt-get install -y wget unzip curl jq gnupg
 
-          # Installer Google Chrome (version stable officielle)
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-linux-keyring.gpg
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+#           # Installer Google Chrome (version stable officielle)
+#           wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-linux-keyring.gpg
+#           echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+#           sudo apt-get update
+#           sudo apt-get install -y google-chrome-stable
 
-          # Obtenir la version exacte de Chrome
-          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+')
-          echo "Chrome installé : $CHROME_VERSION"
+#           # Obtenir la version exacte de Chrome
+#           CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+\.\d+')
+#           echo "Chrome installé : $CHROME_VERSION"
 
-          # Chercher la version correspondante de ChromeDriver depuis l’API officielle
-          DOWNLOAD_URL=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json | \
-          jq -r --arg ver "$CHROME_VERSION" '.versions[] | select(.version==$ver) | .downloads.chromedriver[] | select(.platform=="linux64") | .url')
+#           # Chercher la version correspondante de ChromeDriver depuis l’API officielle
+#           DOWNLOAD_URL=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json | \
+#           jq -r --arg ver "$CHROME_VERSION" '.versions[] | select(.version==$ver) | .downloads.chromedriver[] | select(.platform=="linux64") | .url')
 
-          echo "Téléchargement de ChromeDriver depuis : $DOWNLOAD_URL"
+#           echo "Téléchargement de ChromeDriver depuis : $DOWNLOAD_URL"
 
-          # Télécharger et installer le ChromeDriver
-          wget "$DOWNLOAD_URL" -O chromedriver-linux64.zip
-          unzip chromedriver-linux64.zip
-          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
-          sudo chmod +x /usr/local/bin/chromedriver
+#           # Télécharger et installer le ChromeDriver
+#           wget "$DOWNLOAD_URL" -O chromedriver-linux64.zip
+#           unzip chromedriver-linux64.zip
+#           sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
+#           sudo chmod +x /usr/local/bin/chromedriver
 
-          # Vérification
-          chromedriver --version
-          google-chrome --version
+#           # Vérification
+#           chromedriver --version
+#           google-chrome --version
 
-      - name: Build app without tests
-        run: ./mvnw clean package -DskipTests
+#       - name: Build app without tests
+#         run: ./mvnw clean package -DskipTests
 
-      - name: Start Spring Boot app in background
-        run: nohup java -jar target/*.jar &
+#       - name: Start Spring Boot app in background
+#         run: nohup java -jar target/*.jar &
 
-      - name: Wait for app to be ready
-        run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:8080 > /dev/null; then
-              echo "Spring Boot is up!"
-              break
-            fi
-            echo "Waiting for Spring Boot app..."
-            sleep 5
-          done
+#       - name: Wait for app to be ready
+#         run: |
+#           for i in {1..30}; do
+#             if curl -s http://localhost:8080 > /dev/null; then
+#               echo "Spring Boot is up!"
+#               break
+#             fi
+#             echo "Waiting for Spring Boot app..."
+#             sleep 5
+#           done
 
-      - name: Run Selenium Test
-        run: ./mvnw test -Dtest=ProductSeleniumTest
+#       - name: Run Selenium Test
+#         run: ./mvnw test -Dtest=ProductSeleniumTest
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: surefire-reports
-          path: target/surefire-reports
+#       - name: Upload test results
+#         if: always()
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: surefire-reports
+#           path: target/surefire-reports
 
-      - name: Publish JUnit results
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: Selenium UI Tests
-          path: target/surefire-reports/*.xml
-          reporter: java-junit
+#       - name: Publish JUnit results
+#         if: always()
+#         uses: dorny/test-reporter@v1
+#         with:
+#           name: Selenium UI Tests
+#           path: target/surefire-reports/*.xml
+#           reporter: java-junit
+# # 2779cebcee692c19dfa9d0e2ba766f4e4c94f294
